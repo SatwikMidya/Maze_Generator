@@ -183,6 +183,8 @@ for cell in grid:
 
 
 cv.imshow('maze final', maze)
+cv.imwrite("maze.png", maze)
+
 cv.waitKey(0)
 
 
