@@ -1,8 +1,10 @@
 import numpy as np
 import cv2 as cv
 import math
+import random
 
-blanck=np.zeros((500,500,3),dtype='uint8')    #creates the blanck screen to grid
+blanck=np.zeros((500,500,3),dtype='uint8')
+maze=np.zeros((500,500,3),dtype='uint8')    #creates the blanck screen to grid
 grid=[]
 
 
@@ -15,6 +17,7 @@ class Cell:
         self.cell=[True,True,True,True]
         self.visited = False
         self.index= 0 
+        self.Nneighbour=[0,0,0,0]
     
     def draw(self,canvas):
 
@@ -22,13 +25,22 @@ class Cell:
         y=self.y
         w=self.w
         if(self.cell[0]):
-            cv.line(canvas,(x*w,y*w),((x+1)*w,y*w),(255,255,255),2)
+            cv.line(canvas,(x*w,y*w),((x+1)*w,y*w),(255,255,255),3)
         if(self.cell[1]):
-            cv.line(canvas,(x*w,y*w),(x*w,(y+1)*w),(255,255,255),2)
+            cv.line(canvas,(x*w,y*w),(x*w,(y+1)*w),(255,255,255),3)
         if(self.cell[2]):
-            cv.line(canvas,(x*w,(y+1)*w),((x+1)*w,(y+1)*w),(255,255,255),2)
+            cv.line(canvas,(x*w,(y+1)*w),((x+1)*w,(y+1)*w),(255,255,255),3)
         if(self.cell[3]):
-            cv.line(canvas,((x+1)*w,y*w),((x+1)*w,(y+1)*w),(255,255,255),2)
+            cv.line(canvas,((x+1)*w,y*w),((x+1)*w,(y+1)*w),(255,255,255),3)
+
+        if not self.cell[0]:
+            cv.line(canvas,(x*w,y*w),((x+1)*w,y*w),(0,0,0),3)
+        if not self.cell[1]:
+            cv.line(canvas,(x*w,y*w),(x*w,(y+1)*w),(0,0,0),3)
+        if not self.cell[2]:
+            cv.line(canvas,(x*w,(y+1)*w),((x+1)*w,(y+1)*w),(0,0,0),3)
+        if not self.cell[3]:
+            cv.line(canvas,((x+1)*w,y*w),((x+1)*w,(y+1)*w),(0,0,0),3)
     
 
     
@@ -43,18 +55,44 @@ class Cell:
 
         if y > 0 :
             top=grid[x+((y-1)*col)]
-            neighbour.append(top)
+            if(top.visited == False):
+                neighbour.append(top)
         if x > 0 :
             left=grid[(x-1)+(y*col)]
-            neighbour.append(left)
+            if(left.visited==False):
+                neighbour.append(left)
         if y < row-1 :
             bottom = grid[x+((y+1)*col)]
-            neighbour.append(bottom)
+            if(bottom.visited==False):
+               neighbour.append(bottom)
         if x < col-1 :
             right = grid[(x+1)+(y*col)]
-            neighbour.append(right)
+            if(right.visited==False):
+                neighbour.append(right)
     
         return neighbour
+    
+    def removeWall(self,current):
+        dx=self.x-current.x
+        dy=self.y-current.y
+
+        if(dx==1):
+            current.cell[3]=False
+            self.cell[1]=False
+        if(dx==-1):
+            current.cell[1]=False
+            self.cell[3]=False
+        if(dy==1):
+            current.cell[2]=False
+            self.cell[0]=False
+        if(dy==-1):
+            current.cell[0]=False
+            self.cell[2]=False
+            
+    
+    
+
+
 
     
                 
@@ -100,17 +138,26 @@ def drawGrid():
 
 
 
-def createmaze(row , col):
+def createmaze(cell):
     
-    row , col = row, col
-    index = row + col*10
-    current = grid[index]
+    current = cell
     current.visited = True
-    current.mark()
+    # current.mark()
     neighbours = current.checkneighbours()
+    random.shuffle(neighbours)
     for neighbour in neighbours:
-        print(neighbour.index)
-        neighbour.markblue()
+        # print(neighbour.index)
+        # neighbour.markblue()
+        if not neighbour.visited:
+            neighbour.removeWall(current)
+            current.draw(blanck)
+            neighbour.draw(blanck)
+            cv.imshow('grid',blanck)
+            # cv.imshow('maze',maze)
+            cv.waitKey(60)
+            createmaze(neighbour)
+
+
         
     
     
@@ -122,9 +169,23 @@ def createmaze(row , col):
 
 
 drawGrid()
-createmaze(0,0)
+# setup(50)
+cell=grid[55]
+cell.markblue()
+createmaze(cell)
+for cell in grid:
+        cell.draw(maze)
+
+
+
+
+
+
+
+cv.imshow('maze final', maze)
+cv.waitKey(0)
+
+
 # test = grid[2]
 # test.mark()
 
-cv.imshow('grid',blanck)
-cv.waitKey(0)
