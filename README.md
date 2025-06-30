@@ -16,3 +16,6 @@ Uses two canavs , one to show the wall removal iterative process and another to 
 link to wiki page : https://en.wikipedia.org/wiki/Maze_generation_algorithm#Recursive_implementation
 
 I will keep updating different algorithms to create mazes
+
+eg:
+![alt text](maze.png)
